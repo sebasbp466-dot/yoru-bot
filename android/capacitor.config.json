@@ -1,0 +1,10 @@
+{
+  "appId": "com.yoru.bot",
+  "appName": "Yoru",
+  "webDir": "www",
+  "backgroundColor": "#070a18",
+  "server": { "androidScheme": "http", "cleartext": true },
+  "plugins": {
+    "CapacitorNodeJS": { "nodeDir": "nodejs", "startMode": "auto" }
+  }
+}

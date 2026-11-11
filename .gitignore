@@ -1,0 +1,7 @@
+node_modules/
+data/
+config.json
+android/node_modules/
+android/android/
+android/nodejs-project/
+*.apk

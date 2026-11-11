@@ -1,0 +1,22 @@
+'use strict';
+const crypto = require('crypto');
+const { calc, pick, rand } = require('../core/util');
+const { usage } = require('../core/helpers');
+const UNITS = { km: ['m', 1000], m: ['m', 1], cm: ['m', .01], mm: ['m', .001], mi: ['m', 1609.344], ft: ['m', .3048], in: ['m', .0254], kg: ['g', 1000], g: ['g', 1], lb: ['g', 453.592], oz: ['g', 28.3495], l: ['l', 1], ml: ['l', .001], gal: ['l', 3.78541] };
+module.exports = [
+  { cat: 'tools', name: 'calc', alias: ['calcular'], desc: 'Calculadora', ex: '/calc (12+8)*3^2', async run(c) { if (!c.body) throw usage('Ejemplo: */calc (12+8)*3^2*'); let r; try { r = calc(c.body); } catch { throw usage('No pude calcular eso. Usa números y + - * / ^ ( ) sqrt() pi.'); } await c.reply(`🧮 ${c.body} = *${+r.toFixed(10)}*`); } },
+  { cat: 'tools', name: 'clave', alias: ['password'], async run(c) { const n = Math.min(64, Math.max(8, parseInt(c.args[0]) || 16)); const set = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*?'; let s = ''; for (let i = 0; i < n; i++) s += set[crypto.randomInt(set.length)]; await c.reply('🔐 `' + s + '`\n_Cópiala y no la compartas._'); } },
+  { cat: 'tools', name: 'base64', async run(c) { const [m, ...r] = c.args; const t = r.join(' '); if (!['cod', 'dec'].includes(m) || !t) throw usage('Uso: */base64 cod hola* o */base64 dec aG9sYQ==*'); await c.reply('`' + (m === 'cod' ? Buffer.from(t).toString('base64') : Buffer.from(t, 'base64').toString('utf8')) + '`'); } },
+  { cat: 'tools', name: 'contar', async run(c) { const t = c.body || c.quotedText; if (!t) throw usage('Escribe o cita un texto.'); await c.reply(`🔢 Caracteres: ${t.length} · Palabras: ${t.trim().split(/\s+/).length} · Líneas: ${t.split('\n').length}`); } },
+  { cat: 'tools', name: 'color', async run(c) { const h = (c.args[0] || '').replace('#', ''); if (!/^[0-9a-f]{6}$/i.test(h)) throw usage('Ejemplo: */color #ff6fa5*'); const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16); await c.reply(`🎨 #${h.toLowerCase()}\nRGB: ${r}, ${g}, ${b}\nLuminosidad: ${Math.round((0.299 * r + 0.587 * g + 0.114 * b) / 2.55)}%`); } },
+  { cat: 'tools', name: 'convertir', async run(c) { const m = c.body.match(/^([\d.,]+)\s*([a-z]+)\s+(?:a|to|en)\s+([a-z]+)$/i); if (!m) throw usage('Ejemplo: */convertir 5 km a mi*\nUnidades: ' + Object.keys(UNITS).join(', ') + ' y °c/°f (ej. 30 c a f)');
+    const v = parseFloat(m[1].replace(',', '.')), a = m[2].toLowerCase(), b = m[3].toLowerCase();
+    if (a === 'c' && b === 'f') return c.reply(`🌡️ ${v} °C = *${+(v * 9 / 5 + 32).toFixed(2)} °F*`); if (a === 'f' && b === 'c') return c.reply(`🌡️ ${v} °F = *${+((v - 32) * 5 / 9).toFixed(2)} °C*`);
+    const A = UNITS[a], B = UNITS[b]; if (!A || !B || A[0] !== B[0]) throw usage('No sé convertir entre esas unidades.'); await c.reply(`📏 ${v} ${a} = *${+(v * A[1] / B[1]).toFixed(4)} ${b}*`); } },
+  { cat: 'tools', name: 'encuesta', alias: ['poll'], group: false, async run(c) { const p = c.body.split('|').map(s => s.trim()).filter(Boolean); if (p.length < 3) throw usage('Uso: */encuesta ¿Pizza o sushi? | Pizza | Sushi*'); await c.sock.sendMessage(c.jid, { poll: { name: p[0], values: p.slice(1, 12), selectableCount: 1 } }); } },
+  { cat: 'tools', name: 'sorteo', perm: 'A', group: true, async run(c) { const n = Math.max(1, Math.min(10, parseInt(c.args[0]) || 1)); const ids = c.meta.participants.map(p => p.id).filter(i => !i.includes(c.sock.user.id.split(':')[0])); const w = []; while (w.length < n && ids.length) w.push(ids.splice(rand(0, ids.length - 1), 1)[0]);
+    await c.reply('🎉 *Ganador' + (w.length > 1 ? 'es' : '') + ':*\n' + w.map(i => '• @' + i.split('@')[0]).join('\n'), { mentions: w }); } },
+  { cat: 'tools', name: 'equipos', async run(c) { const k = Math.max(2, Math.min(6, parseInt(c.args[0]))), names = c.body.replace(/^\d+\s*/, '').split(/[,\n]+/).map(s => s.trim()).filter(Boolean); if (!k || names.length < k) throw usage('Uso: */equipos 2 Ana, Luis, Marta, Pedro*');
+    names.sort(() => Math.random() - .5); const t = Array.from({ length: k }, () => []); names.forEach((n, i) => t[i % k].push(n)); await c.reply(t.map((x, i) => `*Equipo ${i + 1}*: ${x.join(', ')}`).join('\n')); } },
+  { cat: 'tools', name: 'turnos', async run(c) { const n = c.body.split(/[,\n]+/).map(s => s.trim()).filter(Boolean); if (n.length < 2) throw usage('Uso: */turnos Ana, Luis, Marta*'); n.sort(() => Math.random() - .5); await c.reply('📋 Orden:\n' + n.map((x, i) => `${i + 1}. ${x}`).join('\n')); } }
+];

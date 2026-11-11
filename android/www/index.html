@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#070a18">
+<title>Yoru</title>
+<style>
+:root{--h:338;--ac:hsl(var(--h) 100% 72%);--tx:#f3f0ff;--mu:#a9a6c8;--gl:rgba(22,20,50,.62);--bd:rgba(255,255,255,.1);color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font:15px/1.45 system-ui,sans-serif;color:var(--tx);background:#070a18;min-height:100vh;padding:max(14px,env(safe-area-inset-top)) 14px 90px}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(60% 40% at 80% 0,hsl(var(--h) 80% 40%/.35),transparent),radial-gradient(70% 50% at 0 100%,rgba(80,70,220,.3),transparent),linear-gradient(#070a18,#140d33)}
+h1{margin:0;font-size:26px}h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);margin:20px 4px 8px}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:6px}.top small{color:var(--mu);display:block}
+.pill{margin-left:auto;padding:6px 12px;border-radius:99px;border:1px solid var(--bd);background:var(--gl);font-size:13px;display:flex;gap:8px;align-items:center}
+.pill i{width:9px;height:9px;border-radius:50%;background:#888}.pill.on i{background:#4ade80;box-shadow:0 0 10px #4ade80}.pill.mid i{background:#fbbf24}.pill.off i{background:#f87171}
+.card{background:var(--gl);border:1px solid var(--bd);border-radius:18px;padding:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);margin-bottom:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.st b{display:block;font-size:24px}.st span{color:var(--mu);font-size:12px}
+.row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd)}.row:last-child{border:0}.row span:first-child{color:var(--mu)}
+button,input,textarea,select{font:inherit;color:inherit}
+button{border:1px solid var(--bd);background:rgba(255,255,255,.07);border-radius:12px;padding:10px 14px;cursor:pointer}button.p{background:var(--ac);color:#1a0b22;border:0;font-weight:700}button:disabled{opacity:.5}
+.seg{display:flex;gap:6px;flex-wrap:wrap}.seg button[aria-pressed=true]{background:var(--ac);color:#1a0b22;border:0;font-weight:700}
+input,textarea{width:100%;background:rgba(0,0,0,.3);border:1px solid var(--bd);border-radius:12px;padding:10px;margin:4px 0 10px}label{font-size:13px;color:var(--mu)}
+pre{margin:0;max-height:260px;overflow:auto;font:12px/1.5 ui-monospace,monospace;white-space:pre-wrap;color:#cfd0ff}
+.code{font:700 28px ui-monospace,monospace;letter-spacing:.12em;text-align:center;color:var(--ac);padding:8px}
+nav{position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));display:flex;gap:6px;background:var(--gl);border:1px solid var(--bd);border-radius:20px;padding:6px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+nav button{flex:1;border:0;background:none;padding:10px 4px;font-size:12px;color:var(--mu)}nav button[aria-current=page]{background:rgba(255,255,255,.1);color:var(--tx)}
+.tab{display:none}.tab.on{display:block}.msg{color:var(--mu);font-size:13px;margin:6px 4px}
+</style></head><body>
+<div class="top"><div><h1>Yoru</h1><small id="sub">conectando…</small></div><div class="pill off" id="pill"><i></i><span id="pt">sin conexión</span></div></div>
+
+<section class="tab on" id="t-home">
+  <div class="card" id="pair" hidden><div class="msg" style="margin:0 0 4px">Vincula WhatsApp: Ajustes → Dispositivos vinculados → Vincular con número de teléfono</div><div class="code" id="code">—</div><div class="msg" id="qrmsg"></div></div>
+  <div class="grid" id="stats"></div>
+  <h2>Modelo de IA</h2><div class="card"><div class="seg" id="models"></div><div class="msg" id="mdesc"></div></div>
+  <h2>Control</h2><div class="card"><div class="seg"><button id="bpause">Pausar bot</button><button id="bmaint">Mantenimiento</button><button id="brest">Reiniciar conexión</button></div></div>
+  <h2>Estado detallado</h2><div class="card" id="det"></div>
+</section>
+
+<section class="tab" id="t-logs"><h2>Registro en vivo</h2><div class="card"><pre id="log">—</pre></div></section>
+
+<section class="tab" id="t-cfg"><h2>Configuración</h2><div class="card">
+  <label>Nombre del bot</label><input id="c-name">
+  <label>Tu número (owner), con código de país y sin +</label><input id="c-own" inputmode="numeric" placeholder="584120000000">
+  <label>Número del bot (para el código de vinculación)</label><input id="c-pair" inputmode="numeric" placeholder="el mismo u otro número">
+  <label>API keys de Gemini (una por línea)</label><textarea id="c-keys" rows="3" placeholder="AIza…"></textarea>
+  <label>Enlace del menú (GitHub Pages)</label><input id="c-menu" placeholder="https://tu-usuario.github.io/yoru-bot/">
+  <label>Límite diario de IA por usuario</label><input id="c-lim" type="number" min="5" max="500">
+  <button class="p" id="save">Guardar y reiniciar</button><div class="msg" id="smsg"></div></div>
+  <div class="card"><div class="msg" style="margin:0 0 8px">Si cambias de número o quieres empezar de cero:</div><button id="bout">Cerrar sesión de WhatsApp</button></div></section>
+
+<nav><button data-t="home" aria-current="page">Estado</button><button data-t="logs">Registro</button><button data-t="cfg">Ajustes</button></nav>
+<script>
+const $=id=>document.getElementById(id),BASE='http://127.0.0.1:8787';
+let tok='',st=null;
+try{tok=localStorage.getItem('yoru-tok')||''}catch(e){}
+const api=async(p,o={})=>{const r=await fetch(BASE+p,{...o,headers:{authorization:'Bearer '+tok,'content-type':'application/json'},body:o.body?JSON.stringify(o.body):undefined});if(!r.ok)throw new Error(r.status);return r.json()};
+const fmt=ms=>{const s=Math.floor(ms/1e3),d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return(d?d+'d ':'')+(h?h+'h ':'')+m+'m'};
+const H=['338','190','265','150','38'];document.documentElement.style.setProperty('--h',H[new Date().getDate()%5]);
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.removeAttribute('aria-current'));b.setAttribute('aria-current','page');document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.id==='t-'+b.dataset.t));if(b.dataset.t==='logs')logs();if(b.dataset.t==='cfg')loadCfg()});
+async function claim(){ // la primera vez, la app fija su propio token en el bot
+  if(!tok){const a=new Uint8Array(18);crypto.getRandomValues(a);tok=[...a].map(x=>x.toString(16).padStart(2,'0')).join('');try{localStorage.setItem('yoru-tok',tok)}catch(e){}}
+  const p=await (await fetch(BASE+'/ping')).json();
+  if(!p.claimed){await fetch(BASE+'/claim',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({token:tok})})}
+}
+const CN={open:['on','en línea'],connecting:['mid','conectando'],closed:['mid','reconectando'],stopped:['off','detenido'],setup:['mid','falta configurar'],loggedout:['off','sesión cerrada'],nolib:['off','faltan librerías']};
+function draw(s){st=s;const c=CN[s.conn]||['off',s.conn];$('pill').className='pill '+(s.paused?'mid':c[0]);$('pt').textContent=s.paused?'en pausa':c[1];$('sub').textContent=s.me?'+'+s.me:'v'+s.version;
+  $('pair').hidden=!(s.pairing||s.qr);$('code').textContent=s.pairing||(s.qr?'Escanea el QR':'—');$('qrmsg').textContent=s.qr&&!s.pairing?'Añade tu número en Ajustes para usar código en vez de QR.':'';
+  $('stats').innerHTML=[['Comandos',s.stats.cmds],['Mensajes IA',s.stats.ai],['Usuarios',s.stats.users],['Grupos',s.stats.groups]].map(x=>`<div class="card st"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('');
+  $('models').innerHTML=['auto','flash','pro','lite'].map(m=>`<button data-m="${m}" aria-pressed="${s.ai.pref===m}">${m}</button>`).join('');
+  $('mdesc').textContent='Último modelo usado: '+(s.ai.last.model||'—')+(s.ai.last.ok?'':' · último error: '+s.ai.last.err);
+  $('det').innerHTML=[['Activo hace',fmt(s.uptime)],['Claves de Gemini',(s.ai.keys-s.ai.keysPaused)+'/'+s.ai.keys],['Comandos listos',s.stats.ready+' (+'+s.stats.stubs+' en camino)'],['Errores',s.stats.errors],['Memoria',s.mem+' MB'],['Personalidad',s.persona]].map(r=>`<div class="row"><span>${r[0]}</span><span>${r[1]}</span></div>`).join('');
+  $('bpause').textContent=s.paused?'Reanudar bot':'Pausar bot';$('bmaint').textContent=s.maintenance?'Salir de mantenimiento':'Mantenimiento';
+  if(s.needsSetup&&!draw.warned){draw.warned=1;document.querySelector('nav button[data-t=cfg]').click()}}
+$('models').onclick=async e=>{const m=e.target.dataset.m;if(!m)return;await api('/model',{method:'POST',body:{model:m}});poll()};
+$('bpause').onclick=async()=>{await api('/pause',{method:'POST',body:{paused:!st.paused}});poll()};
+$('bmaint').onclick=async()=>{await api('/maintenance',{method:'POST',body:{on:!st.maintenance}});poll()};
+$('brest').onclick=async()=>{await api('/restart',{method:'POST',body:{}});setTimeout(poll,1500)};
+$('bout').onclick=async()=>{if(confirm('¿Cerrar la sesión de WhatsApp? Tendrás que vincular otra vez.')){await api('/logout',{method:'POST',body:{}});poll()}};
+async function logs(){try{const j=await api('/logs?n=120');const p=$('log');const end=p.scrollTop+p.clientHeight>=p.scrollHeight-20;p.textContent=j.lines.join('\n')||'—';if(end)p.scrollTop=p.scrollHeight}catch(e){}}
+async function loadCfg(){try{const c=await api('/config');$('c-name').value=c.botName;$('c-own').value=(c.owners||[]).join(', ');$('c-pair').value=c.pairingNumber||'';$('c-keys').placeholder=c.geminiKeys.length?c.geminiKeys.join('\n')+'\n(deja vacío para conservarlas)':'AIza…';$('c-menu').value=c.menuUrl||'';$('c-lim').value=c.dailyLimit}catch(e){}}
+$('save').onclick=async()=>{const k=$('c-keys').value.split(/[\s,]+/).filter(Boolean);const b={botName:$('c-name').value||'Yoru',owners:$('c-own').value,pairingNumber:$('c-pair').value,menuUrl:$('c-menu').value.trim(),dailyLimit:+$('c-lim').value||40};if(k.length)b.geminiKeys=k;
+  $('smsg').textContent='Guardando…';try{await api('/config',{method:'POST',body:b});$('smsg').textContent='Listo. Reiniciando la conexión…';document.querySelector('nav button[data-t=home]').click();setTimeout(poll,2000)}catch(e){$('smsg').textContent='No se pudo guardar'}};
+async function poll(){try{draw(await api('/status'));if($('t-logs').classList.contains('on'))logs()}catch(e){$('pill').className='pill off';$('pt').textContent='sin conexión';$('sub').textContent='esperando al bot…'}}
+(async()=>{for(let i=0;i<30;i++){try{await claim();break}catch(e){await new Promise(r=>setTimeout(r,1000))}}poll();setInterval(()=>{if(!document.hidden)poll()},3000)})();
+</script></body></html>
